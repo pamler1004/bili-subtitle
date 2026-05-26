@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 420px;
+      min-height: 200px;
+      font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-size: 14px;
+      background: #f7f8fa;
+    }
+    .header {
+      background: linear-gradient(135deg, #00A1D6, #0086B3);
+      color: #fff;
+      padding: 16px 20px;
+    }
+    .header h1 { font-size: 17px; font-weight: 600; }
+    .header .subtitle { font-size: 12px; opacity: 0.8; margin-top: 4px; }
+
+    .not-bilibili {
+      padding: 40px 20px;
+      text-align: center;
+      color: #999;
+    }
+    .not-bilibili .icon { font-size: 40px; margin-bottom: 12px; }
+
+    .video-info {
+      padding: 12px 20px;
+      background: #fff;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .video-info .title {
+      font-size: 13px;
+      color: #333;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+    .video-info .badge {
+      font-size: 11px;
+      background: #e3f6fd;
+      color: #00A1D6;
+      padding: 2px 8px;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+
+    .action-area {
+      padding: 16px 20px;
+      background: #fff;
+    }
+    .fetch-btn {
+      width: 100%;
+      padding: 12px;
+      background: #00A1D6;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .fetch-btn:hover:not(:disabled) { background: #00B5E5; }
+    .fetch-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .status {
+      margin-top: 10px;
+      font-size: 12px;
+      text-align: center;
+      color: #999;
+    }
+    .status.error { color: #ff6b6b; }
+    .status.success { color: #52c41a; }
+
+    .result {
+      display: none;
+      margin-top: 12px;
+    }
+    .result.show { display: block; }
+
+    .preview {
+      max-height: 180px;
+      overflow-y: auto;
+      background: #f7f8fa;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.8;
+      color: #333;
+    }
+    .preview .time {
+      color: #00A1D6;
+      font-size: 12px;
+      font-family: 'SF Mono', 'Menlo', monospace;
+      margin-right: 4px;
+    }
+    .preview .more {
+      text-align: center;
+      color: #999;
+      font-size: 12px;
+      padding-top: 4px;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .actions button {
+      padding: 9px 12px;
+      border: 1px solid #e3e5e7;
+      border-radius: 6px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.15s;
+    }
+    .actions button:hover {
+      background: #f0f0f0;
+      border-color: #00A1D6;
+    }
+    .actions .btn-obsidian {
+      grid-column: 1 / -1;
+      background: #7c3aed;
+      color: #fff;
+      border-color: #7c3aed;
+      font-weight: 500;
+    }
+    .actions .btn-obsidian:hover { background: #6d28d9; }
+
+    .settings-toggle {
+      padding: 10px 20px;
+      background: #fff;
+      border-top: 1px solid #eee;
+      text-align: center;
+    }
+    .settings-toggle button {
+      background: none;
+      border: none;
+      color: #999;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .settings-toggle button:hover { color: #00A1D6; }
+
+    .settings-panel {
+      display: none;
+      padding: 16px 20px;
+      background: #fff;
+      border-top: 1px solid #eee;
+    }
+    .settings-panel.show { display: block; }
+    .settings-panel .field { margin-bottom: 12px; }
+    .settings-panel .field:last-child { margin-bottom: 0; }
+    .settings-panel label {
+      display: block;
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 4px;
+    }
+    .settings-panel input[type="text"] {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+    }
+    .settings-panel input[type="text"]:focus { border-color: #00A1D6; }
+    .settings-panel .row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .settings-panel .row input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: #00A1D6;
+    }
+    .save-btn {
+      width: 100%;
+      padding: 8px;
+      background: #00A1D6;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .save-btn:hover { background: #00B5E5; }
+    .saved-hint {
+      display: none;
+      text-align: center;
+      color: #52c41a;
+      font-size: 12px;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>📝 B站字幕助手</h1>
+    <div class="subtitle">获取字幕 · 一键存入 Obsidian</div>
+  </div>
+
+  <div id="notBilibili" class="not-bilibili" style="display:none">
+    <div class="icon">📺</div>
+    <p>请先打开 B 站视频页面</p>
+  </div>
+
+  <div id="mainContent">
+    <div class="video-info">
+      <span class="title" id="videoTitle">检测中...</span>
+      <span class="badge" id="videoBadge"></span>
+    </div>
+
+    <div class="action-area">
+      <button class="fetch-btn" id="fetchBtn">获取字幕</button>
+      <div class="status" id="status"></div>
+
+      <div class="result" id="result">
+        <div class="preview" id="preview"></div>
+        <div class="actions">
+          <button class="btn-obsidian" id="btnObsidian">📓 存入 Obsidian</button>
+          <button id="btnCopy">📋 复制</button>
+          <button id="btnSRT">⬇ SRT</button>
+          <button id="btnTXT">⬇ TXT</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-toggle">
+      <button id="settingsBtn">⚙ 设置</button>
+    </div>
+
+    <div class="settings-panel" id="settingsPanel">
+      <div class="field">
+        <label>Obsidian Vault 名称</label>
+        <input type="text" id="vaultName" placeholder="留空则使用当前打开的 Vault">
+      </div>
+      <div class="field">
+        <label>存放文件夹</label>
+        <input type="text" id="noteFolder" placeholder="如：B站字幕（留空为根目录）">
+      </div>
+      <div class="row">
+        <input type="checkbox" id="includeTimestamp" checked>
+        <label for="includeTimestamp">包含时间戳</label>
+      </div>
+      <button class="save-btn" id="saveSettingsBtn">保存设置</button>
+      <div class="saved-hint" id="savedHint">✓ 已保存</div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
